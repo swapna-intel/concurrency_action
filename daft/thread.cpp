@@ -9,7 +9,11 @@ void threadFunction()
 
 int main()
 {
-  std::thread th(&threadFunction);
+  //  std::thread th(&threadFunction);
+  std::thread th([]()
+  {
+    std::cout << "Hi from thread\n";
+  });
   std::cout << "Hello threads!\n";
   th.join();
   return 0;
