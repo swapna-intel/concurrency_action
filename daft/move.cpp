@@ -4,29 +4,40 @@
 #include <cassert>
 #include <vector>
 
-void threadFunc(int i)
+// WRONG example of passing reference vars local to main thread to worker threads
+void threadFunc(int& i)
 {
   std::cout << "From worker: " << i << std::endl;
 
 }
 
+// CORRECT usage of pass by val
+void threadFunc2(int i)
+{
+  std::cout << "From worker: " << i << std::endl;
+
+}
+
+void run(std::vector<std::thread> &workers)
+{
+  int i;
+  for(i = 0; i < 8; i++)
+    {
+      // create the threads
+      //      auto th = std::thread(threadFunc, std::ref(i));
+      auto th = std::thread(threadFunc2, i);
+      workers.push_back(std::move(th));
+    }
+}
 
 int main()
 {
   std::vector<std::thread> workers;
-  for (int i = 0; i < 8; ++i)
-    {
-      auto th = std::thread(&threadFunc, i);
-      std::cout << "th joinable:" << th.joinable() << std::endl;
-      // unique object th belongs to workers DS
-      workers.push_back(std::move(th));
-      std::cout << "After move, th joinable:" << th.joinable() << std::endl;
-    }
+  run(workers);
   std::cout << "Hi from main!" << std::endl;
   // pass a lambda function with th as arg and wait for join
-  std::for_each(workers.begin(), workers.end(), [](std::thread &th)
+  std::for_each(workers.begin(), workers.end(), [](std::thread& th)
 		{
-		  std::cout << "worker th joinable:" << std::endl;
 		  th.join();
 		});
   return 0;
